@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class AnimalFactory {
     private AnimalFactory(){
@@ -27,7 +27,6 @@ public class AnimalFactory {
         List<? super Animal> producedAnimals=new ArrayList<>();
         for (Class<? extends Animal> clss: animalClasses) {
            int population= getAmountToCreate(clss);
-            System.out.println("Class: " + clss.getSimpleName()+ ". Population: "+ population);
             for (int i = 0; i < population; i++) {
                 producedAnimals.add(getAnimal(clss));
             }
@@ -37,11 +36,11 @@ public class AnimalFactory {
     private static int getAmountToCreate(Class<? extends Animal> clss){
         int randomPopulation;
         try {
-            Random rnd = new Random();
+            ThreadLocalRandom rnd= ThreadLocalRandom.current();
             Field field = clss.getDeclaredField("maxPopulation");
             field.setAccessible(true);
             int maxPopulation = (int) field.get(null);
-            randomPopulation = rnd.nextInt(maxPopulation);
+            randomPopulation= rnd.nextInt(maxPopulation);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
