@@ -1,6 +1,5 @@
 package ua.javarush.island.creature.animal;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import ua.javarush.island.creature.Creature;
@@ -8,6 +7,7 @@ import ua.javarush.island.creature.abilities.CanBreed;
 import ua.javarush.island.creature.abilities.CanEat;
 import ua.javarush.island.creature.abilities.CanMove;
 import ua.javarush.island.map.Area;
+import ua.javarush.island.settings.BaseAnimalSettings;
 import ua.javarush.island.worldgenerator.CreatureFactory;
 
 import java.util.List;
@@ -18,16 +18,18 @@ import java.util.concurrent.ThreadLocalRandom;
 @Getter
 @Setter
 public abstract class Animal extends Creature implements CanMove, CanBreed, CanEat {
-    @JsonIgnore
-
     private double currentWeight;
-    private double foodNeeded;
     private double currentSatiety;
-    private Map<String, Integer> foodPreferences;
     private boolean isHungry = true;
     private boolean isReadyForBreeding = true;
-    private int stepSize;
-    private static final double DELTA_WEIGHT =0.2;
+    private static final double DELTA_WEIGHT = 0.2;
+    private final BaseAnimalSettings settings;
+
+    protected Animal(BaseAnimalSettings settings) {
+        this.settings = settings;
+        currentWeight = settings.getClassWeight();
+        this.name = settings.getClassIcon() + getType();
+    }
 
     @Override
     public <T> Optional<T> breed(Area area) {
@@ -35,7 +37,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
             return Optional.empty();
         }
         List<Animal> sameTypeResidents = area.getResidents(this.getType());
-        if (sameTypeResidents.size() < this.getMaxPopulation()) {
+        if (sameTypeResidents.size() < settings.getClassMaxPopulation()) {
             Optional<Animal> optionalAnimal = sameTypeResidents.stream()
                     .filter(Animal::isReadyForBreeding)
                     .filter(animal -> !animal.equals(this))
@@ -44,7 +46,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
                 Animal animal = optionalAnimal.get();
                 animal.setReadyForBreeding(false);
                 this.setReadyForBreeding(false);
-                Animal animal1 = CreatureFactory.getAnimal(this.getClass());
+                Animal animal1 = CreatureFactory.getAnimal(this.getClass(), settings);
                 System.out.println(animal.getName() + " and " + this.getName() + " gave birth to " + animal1.getName());
                 return (Optional<T>) Optional.of(animal1);
             }
@@ -55,7 +57,10 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
     @Override
     public boolean eat(Area area) {
         Optional<String> victimType = chooseVictimType();
-        return eatOtherAnimal(area, victimType.get());
+        if (victimType.isPresent()) {
+            return eatOtherAnimal(area, victimType.get());
+        }
+        return false;
     }
 
     protected boolean eatOtherAnimal(Area area, String victimType) {
@@ -78,11 +83,10 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         return false;
     }
 
-
     protected void changeSatiety(double foodWeight) {
         currentSatiety += foodWeight;
         setCurrentWeight(foodWeight * DELTA_WEIGHT);
-        if (currentSatiety >= foodNeeded) {
+        if (currentSatiety >= settings.getClassFoodNeeded()) {
             setHungry(false);
         }
     }
@@ -91,12 +95,12 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         int luckyChance = rnd.nextInt(101);
         System.out.println(luckyChance);
-        return luckyChance <= foodPreferences.get(animal.getType());
+        return luckyChance <= settings.getClassFoodPreferences().get(animal.getType());
     }
 
     protected Optional<String> chooseVictimType() {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        List<String> foodTypes = foodPreferences.entrySet().stream()
+        List<String> foodTypes = settings.getClassFoodPreferences().entrySet().stream()
                 .filter(entry -> entry.getValue() != 0)
                 .map(Map.Entry::getKey)
                 .toList();
@@ -105,8 +109,6 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         }
         return Optional.of(foodTypes.get(rnd.nextInt(foodTypes.size())));
     }
-
-    public abstract String getName();
 
     public boolean isReadyForBreeding() {
         return isReadyForBreeding;
@@ -120,15 +122,15 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
     public String toString() {
         return "Animal{" +
                 "name='" + name + '\'' +
-                ", icon='" + getIcon() + '\'' +
-                ", defaultWeight=" + getDefaultWeight() +
+                ", icon='" + settings.getClassIcon() + '\'' +
+                ", defaultWeight=" + settings.getClassWeight() +
                 ", currentWeight=" + getCurrentWeight() +
-                ", foodNeeded=" + foodNeeded +
-                ", foodPreferences=" + foodPreferences +
+                ", foodNeeded=" + settings.getClassFoodNeeded() +
+                ", foodPreferences=" + settings.getClassFoodPreferences() +
                 ", isHungry=" + isHungry +
                 ", isReadyForBreeding=" + isReadyForBreeding +
-                ", maxPopulation=" + getMaxPopulation() +
-                ", stepSize=" + stepSize +
+                ", maxPopulation=" + settings.getClassMaxPopulation() +
+                ", stepSize=" + settings.getClassStepSize() +
                 ", type='" + getType() + '\'' +
                 '}';
     }

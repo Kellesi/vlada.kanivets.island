@@ -27,7 +27,7 @@ public class CreatureSettings {
 
     private static Map<String, LinkedHashMap> readSettingsToMap() {
         ObjectMapper mapper = new ObjectMapper();
-        File file = new File("src/main/java/ua/javarush/island/settings/creatures.json");
+        File file = new File("src/main/resources/creatures.json");
         try {
             List<? super Creature> settingsList = mapper.readValue(file, new TypeReference<>() {
             });
