@@ -1,16 +1,13 @@
-package ua.javarush.island.creature.animal.predator;
+package ua.javarush.island.creature.plant;
 
-public class Bear extends Predator {
+public class Grass extends Plant{
     private static int id;
-
-    public Bear(){
+    public Grass(){
         this.name=getClass().getSimpleName()+(++id);
-        setCurrentWeight(getDefaultWeight());
     }
 
     @Override
     public String getName(){
         return name;
     }
-
 }

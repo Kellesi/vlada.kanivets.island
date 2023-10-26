@@ -1,16 +1,13 @@
-package ua.javarush.island.creature.animal.predator;
+package ua.javarush.island.creature.animal.herbivore;
 
-public class Bear extends Predator {
+public class Buffalo extends Herbivore {
     private static int id;
-
-    public Bear(){
+    public Buffalo(){
         this.name=getClass().getSimpleName()+(++id);
-        setCurrentWeight(getDefaultWeight());
     }
 
     @Override
     public String getName(){
         return name;
     }
-
 }

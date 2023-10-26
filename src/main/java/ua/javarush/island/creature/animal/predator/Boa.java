@@ -1,9 +1,9 @@
 package ua.javarush.island.creature.animal.predator;
 
-public class Bear extends Predator {
+public class Boa extends Predator {
     private static int id;
 
-    public Bear(){
+    public Boa(){
         this.name=getClass().getSimpleName()+(++id);
         setCurrentWeight(getDefaultWeight());
     }
