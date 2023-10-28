@@ -19,7 +19,7 @@ public class Island {
         for (int i = 0; i < areas.length; i++) {
             for (int j = 0; j < areas[i].length; j++) {
                 areas[i][j] = new Area(CreatureFactory.getAnimals(AnimalType.values()),
-                        CreatureFactory.getPlants(PlantType.values()), i, j);
+                        CreatureFactory.getPlants(PlantType.values()), i, j, this);
             }
         }
     }

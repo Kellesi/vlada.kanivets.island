@@ -10,43 +10,67 @@ import java.util.stream.Collectors;
 public class Area {
     private final int pointX;
     private final int pointY;
+    private final Island island;
     private List<? super Animal> residents;
     private List<? super Plant> plants;
 
     public Area(List<? super Animal> residents,
                 List<? super Plant> plants,
-                int pointX, int pointY) {
+                int pointX, int pointY, Island island) {
         this.residents = residents;
         this.plants = plants;
-        this.pointX=pointX;
-        this.pointY=pointY;
+        this.pointX = pointX;
+        this.pointY = pointY;
+        this.island = island;
     }
-    public Area(int pointX, int pointY) {
-        this.pointX=pointX;
-        this.pointY=pointY;
+
+    public Area(int pointX, int pointY, Island island) {
+        this.pointX = pointX;
+        this.pointY = pointY;
+        this.island = island;
     }
-    public void setResidents(List<? super Animal> residents){
+
+    public void setResidents(List<? super Animal> residents) {
         this.residents = residents;
     }
-    public void setPlants(List<? super Plant> plants){
+
+    public void setPlants(List<? super Plant> plants) {
         this.plants = plants;
     }
-    public List<? super Animal> getAllResidents(){
+
+    public List<? super Animal> getAllResidents() {
         return residents;
     }
-    public List<Animal> getResidents(String animalType){
+
+    public List<Animal> getResidents(String animalType) {
         return residents.stream().map(Animal.class::cast).filter(animal -> animal.getType().equals(animalType)).toList();
     }
-    public List<Plant> getPlants(String plantType){
+
+    public List<Plant> getPlants(String plantType) {
         return plants.stream().map(Plant.class::cast).filter(plant -> plant.getType().equals(plantType)).toList();
     }
-    public <T extends Animal>void addResident(T animal){
+
+    public <T extends Animal> void addResident(T animal) {
         residents.add(animal);
     }
-    public String getName(){
-        return String.format("Area %d-%d",pointX,pointY);
+
+    public String getName() {
+        return String.format("Area %d-%d", pointX, pointY);
     }
-    public Map<String, Long> getCurrentPopulation(){
+
+    public Map<String, Long> getCurrentPopulation() {
         return residents.stream().map(Animal.class::cast).collect(Collectors.groupingBy(Animal::getType, Collectors.counting()));
+    }
+
+    public Island getIsland() {
+        return island;
+    }
+
+    public int getPointX() {
+        return pointX;
+    }
+
+    public int getPointY() {
+        return pointY;
     }
 }

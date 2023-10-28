@@ -7,6 +7,8 @@ import ua.javarush.island.creature.abilities.CanBreed;
 import ua.javarush.island.creature.abilities.CanEat;
 import ua.javarush.island.creature.abilities.CanMove;
 import ua.javarush.island.map.Area;
+import ua.javarush.island.map.Direction;
+import ua.javarush.island.map.Island;
 import ua.javarush.island.settings.BaseAnimalSettings;
 import ua.javarush.island.worldgenerator.CreatureFactory;
 
@@ -21,6 +23,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
     private double currentWeight;
     private double currentSatiety;
     private boolean isHungry = true;
+    private boolean isMoved = false;
     private boolean isReadyForBreeding = true;
     private static final double DELTA_WEIGHT = 0.2;
     private final BaseAnimalSettings settings;
@@ -52,6 +55,45 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public void move(Area area) {
+        int stepSize = settings.getClassStepSize();
+        Area newArea = area;
+        while (stepSize != 0) {
+            newArea = moveForOneStep(newArea);
+            stepSize -= 1;
+        }
+        if (area.equals(newArea) || newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation()) {
+            return;
+        }
+        area.getAllResidents().remove(this);
+        newArea.getAllResidents().add(this);
+        isMoved = true;
+    }
+
+    private Area moveForOneStep(Area area) {
+        Island island = area.getIsland();
+        int currentX = area.getPointX();
+        int currentY = area.getPointY();
+        Direction direction = chooseDirection();
+        int newX = currentX + direction.getDeltaX();
+        int newY = currentY + direction.getDeltaY();
+        Area newArea;
+        Area[][] areas = island.getAreas();
+        try {
+            newArea = areas[newX][newY];
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            newArea = moveForOneStep(area);
+        }
+        return newArea;
+    }
+
+    private Direction chooseDirection() {
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        Direction[] directions = Direction.values();
+        return directions[rnd.nextInt(directions.length)];
     }
 
     @Override
