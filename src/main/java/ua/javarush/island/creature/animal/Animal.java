@@ -50,7 +50,6 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
                 animal.setReadyForBreeding(false);
                 this.setReadyForBreeding(false);
                 Animal animal1 = CreatureFactory.getAnimal(this.getClass(), settings);
-                System.out.println(animal.getName() + " and " + this.getName() + " gave birth to " + animal1.getName());
                 return (Optional<T>) Optional.of(animal1);
             }
         }
@@ -68,8 +67,25 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         if (area.equals(newArea) || newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation()) {
             return;
         }
-        area.getAllResidents().remove(this);
-        newArea.getAllResidents().add(this);
+        try {
+            newArea.getLock().lock();
+            if (!(newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation())) {
+                System.out.println(area.getName()+" ->"+ newArea.getName());
+                System.out.println(newArea.getName()+" before adding " +newArea.getResidents(this.getType()).size());
+                newArea.addResident(this);
+                System.out.println(newArea.getName()+"after adding" +newArea.getResidents(this.getType()).size());
+            }
+        } finally {
+            newArea.getLock().unlock();
+        }
+        area.getLock().lock();
+        try {
+            System.out.println(area.getName()+" before removing " +area.getResidents(this.getType()).size());
+            area.removeResident(this);
+            System.out.println(area.getName()+" after removing " +area.getResidents(this.getType()).size());
+        } finally {
+            area.getLock().unlock();
+        }
         isMoved = true;
     }
 
@@ -112,15 +128,14 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
                         .map(Animal.class::cast)
                         .filter(Animal::isAlive)
                         .toList();
+        if (possibleVictims.isEmpty()) {
+            return false;
+        }
         Animal animal = possibleVictims.get(rnd.nextInt(possibleVictims.size()));
-        System.out.println(animal.getName());
         if (tryToEat(animal)) {
-            System.out.println(this.getName() + " has eaten " + animal.getName());
             animal.setAlive(false);
             changeSatiety(animal.getCurrentWeight());
             return true;
-        } else {
-            System.out.println(animal.getName() + " escaped");
         }
         return false;
     }
@@ -136,7 +151,6 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
     private boolean tryToEat(Animal animal) {
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         int luckyChance = rnd.nextInt(101);
-        System.out.println(luckyChance);
         return luckyChance <= settings.getClassFoodPreferences().get(animal.getType());
     }
 
@@ -165,15 +179,12 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         return "Animal{" +
                 "name='" + name + '\'' +
                 ", icon='" + settings.getClassIcon() + '\'' +
-                ", defaultWeight=" + settings.getClassWeight() +
                 ", currentWeight=" + getCurrentWeight() +
                 ", foodNeeded=" + settings.getClassFoodNeeded() +
-                ", foodPreferences=" + settings.getClassFoodPreferences() +
                 ", isHungry=" + isHungry +
                 ", isReadyForBreeding=" + isReadyForBreeding +
                 ", maxPopulation=" + settings.getClassMaxPopulation() +
                 ", stepSize=" + settings.getClassStepSize() +
-                ", type='" + getType() + '\'' +
                 '}';
     }
 }
