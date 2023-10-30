@@ -1,9 +1,11 @@
 package ua.javarush.island.map;
 
+import lombok.Getter;
 import ua.javarush.island.creature.AnimalType;
 import ua.javarush.island.creature.PlantType;
 import ua.javarush.island.worldgenerator.CreatureFactory;
 
+@Getter
 public class Island {
     private final int width;
     private final int height;

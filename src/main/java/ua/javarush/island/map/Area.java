@@ -34,14 +34,6 @@ public class Area {
         this.island = island;
     }
 
-    public void setResidents(List<? super Animal> residents) {
-        this.residents = residents;
-    }
-
-    public void setPlants(List<? super Plant> plants) {
-        this.plants = plants;
-    }
-
     public List<? super Animal> getAllResidents() {
         return residents;
     }
