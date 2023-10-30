@@ -7,6 +7,7 @@ import ua.javarush.island.settings.CreatureSettings;
 
 public enum PlantType {
     GRASS(Grass.class, new BasePlantSettings(CreatureSettings.getSettingMap().get("Grass")));
+
     Class<? extends Plant> clss;
     BasePlantSettings settings;
 

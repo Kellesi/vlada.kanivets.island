@@ -67,20 +67,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         if (area.equals(newArea) || newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation()) {
             return;
         }
-        try {
-            newArea.getLock().lock();
-            if (!(newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation())) {
-                newArea.addResident(this);
-            }
-        } finally {
-            newArea.getLock().unlock();
-        }
-        area.getLock().lock();
-        try {
-            area.removeResident(this);
-        } finally {
-            area.getLock().unlock();
-        }
+        newArea.addResident(this);
         isMoved = true;
     }
 

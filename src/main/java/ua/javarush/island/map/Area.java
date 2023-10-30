@@ -1,5 +1,6 @@
 package ua.javarush.island.map;
 
+import lombok.Getter;
 import ua.javarush.island.creature.Creature;
 import ua.javarush.island.creature.animal.Animal;
 import ua.javarush.island.creature.plant.Plant;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-
+@Getter
 public class Area {
     ReentrantLock lock = new ReentrantLock(true);
     private final int pointX;
@@ -68,21 +69,5 @@ public class Area {
 
     public void removeAllDeads() {
         residents = residents.stream().map(Animal.class::cast).filter(Creature::isAlive).collect(Collectors.toList());
-    }
-
-    public Island getIsland() {
-        return island;
-    }
-
-    public int getPointX() {
-        return pointX;
-    }
-
-    public int getPointY() {
-        return pointY;
-    }
-
-    public ReentrantLock getLock() {
-        return lock;
     }
 }

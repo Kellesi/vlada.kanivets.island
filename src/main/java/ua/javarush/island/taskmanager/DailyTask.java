@@ -43,17 +43,19 @@ public class DailyTask {
     }
 
     private static void everyoneMove(Area area, List<? super Animal> allResidents) {
-        if (allResidents.isEmpty()){
+        if (allResidents.isEmpty()) {
             return;
         }
-        for (Object resident : allResidents) {
-            Animal animal = (Animal) resident;
+        ListIterator<? super Animal> it = allResidents.listIterator();
+        while (it.hasNext()) {
+            Animal animal = (Animal) it.next();
             animal.move(area);
+            it.remove();
         }
     }
 
     private static void everyoneBreed(Area area, List<? super Animal> allResidents) {
-        if (allResidents.isEmpty()){
+        if (allResidents.isEmpty()) {
             return;
         }
         ListIterator<? super Animal> it = allResidents.listIterator();
@@ -67,7 +69,7 @@ public class DailyTask {
     }
 
     private static void everyoneEat(Area area, List<? super Animal> allResidents) {
-        if (allResidents.isEmpty()){
+        if (allResidents.isEmpty()) {
             return;
         }
         for (Object resident : allResidents) {
