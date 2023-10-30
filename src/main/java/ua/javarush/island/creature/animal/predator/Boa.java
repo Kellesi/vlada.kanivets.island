@@ -1,16 +1,17 @@
 package ua.javarush.island.creature.animal.predator;
 
-public class Boa extends Predator {
-    private static int id;
+import ua.javarush.island.settings.BaseAnimalSettings;
 
-    public Boa(){
-        this.name=getClass().getSimpleName()+(++id);
-        setCurrentWeight(getDefaultWeight());
+public class Boa extends Predator {
+    private static int counter;
+
+    public Boa(BaseAnimalSettings settings) {
+        super(settings);
+        this.name = name + (++counter);
     }
 
     @Override
-    public String getName(){
+    public String getName() {
         return name;
     }
-
 }
