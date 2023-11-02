@@ -23,20 +23,26 @@ public abstract class Herbivore extends Animal {
         possibleVictims.addAll(area.getAllPlants().stream()
                 .filter(Creature::isAlive)
                 .toList());
-        Creature victim = possibleVictims.get(rnd.nextInt(possibleVictims.size()));
-        if (victim instanceof Animal animal) {
-            eatOtherAnimal(animal);
-        }
-        if (victim instanceof Plant plant) {
-            plant.getLock().lock();
-            try {
+        if (possibleVictims.isEmpty()) return;
+        getLock().lock();
+        try {
+            if (!isAlive()) {
+                return;
+            }
+            Creature victim = possibleVictims.get(rnd.nextInt(possibleVictims.size()));
+            if (victim instanceof Animal animal) {
+                eatOtherAnimal(animal);
+            }
+            if (victim instanceof Plant plant) {
+                plant.getLock().lock();
                 if (plant.isAlive()) {
                     plant.setAlive(false);
                     changeSatiety(plant.getSettings().getClassWeight());
                 }
-            } finally {
                 plant.getLock().unlock();
             }
+        } finally {
+            getLock().unlock();
         }
     }
 }

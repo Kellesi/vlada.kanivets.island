@@ -29,8 +29,8 @@ public class CreatureFactory {
         return instance;
     }
 
-    public static <T> T getPlant(Class<T> plantClass, BasePlantSettings settings) {
-        T instance;
+    public static Plant getPlant(Class<? extends Plant> plantClass, BasePlantSettings settings) {
+        Plant instance;
         try {
             instance = plantClass.getConstructor(BasePlantSettings.class).newInstance(settings);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
@@ -40,8 +40,8 @@ public class CreatureFactory {
         return instance;
     }
 
-    public static List<? super Plant> getPlants(PlantType[] plantTypes) {
-        List<? super Plant> producedPlants = new ArrayList<>();
+    public static List<Plant> getPlants(PlantType[] plantTypes) {
+        List<Plant> producedPlants = new ArrayList<>();
         for (PlantType type : plantTypes) {
             int population = rnd.nextInt(type.getSettings().getClassMaxPopulation() + 1);
             for (int i = 0; i < population; i++) {
@@ -51,8 +51,8 @@ public class CreatureFactory {
         return producedPlants;
     }
 
-    public static List<? super Animal> getAnimals(AnimalType[] animalTypes) {
-        List<? super Animal> producedAnimals = new ArrayList<>();
+    public static List<Animal> getAnimals(AnimalType[] animalTypes) {
+        List<Animal> producedAnimals = new ArrayList<>();
         for (AnimalType type : animalTypes) {
             int population = rnd.nextInt(type.getSettings().getClassMaxPopulation() + 1);
             for (int i = 0; i < population; i++) {

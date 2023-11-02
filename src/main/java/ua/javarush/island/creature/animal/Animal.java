@@ -56,53 +56,68 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         if (!this.isReadyForBreeding) {
             return Optional.empty();
         }
-        getLock().lock();
-        try {
-            List<Animal> sameTypeResidents = area.getResidents(this.getType());
-            if (sameTypeResidents.size() < settings.getClassMaxPopulation()) {
-                Optional<Animal> optionalAnimal = sameTypeResidents.stream()
-                        .filter(Animal::isReadyForBreeding)
-                        .filter(animal -> !animal.equals(this))
-                        .findFirst();
-                if (optionalAnimal.isPresent()) {
-                    Animal animal = optionalAnimal.get();
-                    animal.getLock().lock();
-                    try {
-                        if (animal.isReadyForBreeding) {
-                            animal.setReadyForBreeding(false);
-                            this.setReadyForBreeding(false);
-                            Animal animal1 = CreatureFactory.getAnimal(this.getClass(), settings);
-                            return (Optional<T>) Optional.of(animal1);
-                        }
-                    } finally {
-                        animal.getLock().unlock();
+        List<Animal> sameTypeResidents = area.getResidents(this.getType());
+        if (sameTypeResidents.size() < settings.getClassMaxPopulation()) {
+            Optional<Animal> optionalAnimal = sameTypeResidents.stream()
+                    .filter(Animal::isReadyForBreeding)
+                    .filter(animal -> !animal.equals(this))
+                    .findFirst();
+            if (optionalAnimal.isPresent()) {
+                Animal animal = optionalAnimal.get();
+                Animal animal1 = this.hashCode() > animal.hashCode() ? this : animal;
+                Animal animal2 = this.hashCode() < animal.hashCode() ? this : animal;
+                animal1.getLock().lock();
+                animal2.getLock().lock();
+                try {
+                    if (animal.isReadyForBreeding && this.isReadyForBreeding) {
+                        animal.setReadyForBreeding(false);
+                        this.setReadyForBreeding(false);
+                        Animal newAnimal = CreatureFactory.getAnimal(this.getClass(), settings);
+                        return (Optional<T>) Optional.of(newAnimal);
                     }
+                } finally {
+                    animal2.getLock().unlock();
+                    animal1.getLock().unlock();
                 }
             }
-            return Optional.empty();
-        } finally {
-            getLock().unlock();
         }
+        return Optional.empty();
     }
 
     @Override
-    public boolean move(Area area) {
-        if (isMoved) {
-            return false;
-        }
+    public void move(Area area) {
         int stepSize = settings.getClassStepSize();
+        if (isMoved || stepSize == 0) {
+            return;
+        }
         Area newArea = area;
         while (stepSize != 0) {
             newArea = getNextArea(newArea);
             stepSize -= 1;
         }
         if (area.equals(newArea) || newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation()) {
+        //    System.out.println(this.getName()+" " + area.getName()+" -> "+ newArea.getName());
             isMoved = true;
-            return false;
+            return;
         }
-        newArea.addResident(this);
-        isMoved = true;
-        return true;
+        newArea.getLock().lock();
+        try {
+            if (newArea.getResidents(this.getType()).size() != settings.getClassMaxPopulation()) {
+                newArea.addResident(this);
+                isMoved = true;
+            }
+        } finally {
+            newArea.getLock().unlock();
+        }
+        area.getLock().lock();
+        try {
+            if (isMoved) {
+        //        System.out.println(this.getName()+" " + area.getName()+" -> "+ newArea.getName());
+                area.removeResident(this);
+            }
+        } finally {
+            area.getLock().unlock();
+        }
     }
 
     public boolean isReadyForBreeding() {
