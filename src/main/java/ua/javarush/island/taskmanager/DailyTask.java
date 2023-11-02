@@ -13,18 +13,49 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DailyTask {
     private final Island island;
+    private Area[][] areas;
 
     public DailyTask(Island island) {
         this.island = island;
+        areas = island.getAreas();
     }
 
-    public Queue<Callable<Void>> getTasks() {
+    public Queue<Callable<Void>> getMovingTasks() {
         Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
-        Area[][] areas = island.getAreas();
+        for (Area[] areas1 : areas) {
+            for (Area area : areas1) {
+                tasks.addAll(everyoneMoveByOne(area));
+            }
+        }
+        return tasks;
+    }
+
+    public Queue<Callable<Void>> getEatingTasksForASingleArea() {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
+        for (Area[] areas1 : areas) {
+            for (Area area : areas1) {
+                tasks.addAll(everyoneEatByOne(area));
+            }
+        }
+        return tasks;
+    }
+
+    public Queue<Callable<Void>> getBreedingTasksForASingleArea() {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
+        for (Area[] areas1 : areas) {
+            for (Area area : areas1) {
+                tasks.addAll(everyoneBreedByOne(area));
+            }
+        }
+        return tasks;
+    }
+
+    public Queue<Callable<Void>> getEatingTasks() {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
         for (Area[] areas1 : areas) {
             for (Area area : areas1) {
                 tasks.add(() -> {
-                    dailyLifeCycle(area);
+                    everyoneEat(area);
                     return null;
                 });
             }
@@ -32,49 +63,83 @@ public class DailyTask {
         return tasks;
     }
 
-    private void dailyLifeCycle(Area area) {
-        area.getLock().lock();
-        everyoneEat(area, area.getAllResidents());
-        area.removeAllDeads();
-        everyoneBreed(area, area.getAllResidents());
-        area.getLock().unlock();
-        everyoneMove(area, area.getAllResidents());
-        System.out.println("done " + area.getName());
+    public Queue<Callable<Void>> getBreedingTasks() {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
+        for (Area[] areas1 : areas) {
+            for (Area area : areas1) {
+                tasks.add(() -> {
+                    everyoneBreed(area);
+                    return null;
+                });
+            }
+        }
+        return tasks;
     }
 
-    private static void everyoneMove(Area area, List<? super Animal> allResidents) {
+    private Queue<Callable<Void>> everyoneMoveByOne(Area area) {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
+        List<Animal> allResidents = area.getAllResidents();
+        if (!allResidents.isEmpty()) {
+            for (Animal resident : allResidents) {
+                tasks.add(() -> {
+                    resident.move(area);
+                    return null;
+                });
+            }
+        }
+        return tasks;
+    }
+
+    private Queue<Callable<Void>> everyoneEatByOne(Area area) {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
+        List<Animal> allResidents = area.getAllResidents();
+        if (!allResidents.isEmpty()) {
+            for (Animal resident : allResidents) {
+                tasks.add(() -> {
+                    resident.eat(area);
+                    return null;
+                });
+            }
+        }
+        return tasks;
+    }
+
+    private Queue<Callable<Void>> everyoneBreedByOne(Area area) {
+        Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
+        List<Animal> allResidents = area.getAllResidents();
+        if (!allResidents.isEmpty()) {
+            for (Animal resident : allResidents) {
+                tasks.add(() -> {
+                    resident.breed(area);
+                    return null;
+                });
+            }
+        }
+        return tasks;
+    }
+
+    private void everyoneBreed(Area area) {
+        List<Animal> allResidents = area.getAllResidents();
         if (allResidents.isEmpty()) {
             return;
         }
-        ListIterator<? super Animal> it = allResidents.listIterator();
-        while (it.hasNext()) {
-            Animal animal = (Animal) it.next();
-            animal.move(area);
-            it.remove();
-        }
-    }
-
-    private static void everyoneBreed(Area area, List<? super Animal> allResidents) {
-        if (allResidents.isEmpty()) {
-            return;
-        }
-        ListIterator<? super Animal> it = allResidents.listIterator();
-        while (it.hasNext()) {
-            Animal animal = (Animal) it.next();
-            Optional<Object> breed = animal.breed(area);
+        ListIterator<Animal> iterator = allResidents.listIterator();
+        while (iterator.hasNext()) {
+            Optional<Animal> breed = iterator.next().breed(area);
             if (breed.isPresent()) {
-                it.add((Animal) breed.get());
+                iterator.add(breed.get());
             }
         }
     }
 
-    private static void everyoneEat(Area area, List<? super Animal> allResidents) {
+    private void everyoneEat(Area area) {
+        List<Animal> allResidents = area.getAllResidents();
         if (allResidents.isEmpty()) {
             return;
         }
-        for (Object resident : allResidents) {
-            Animal animal = (Animal) resident;
-            animal.eat(area);
+        for (Animal resident : allResidents) {
+            resident.eat(area);
         }
+        area.removeAllDeads();
     }
 }
