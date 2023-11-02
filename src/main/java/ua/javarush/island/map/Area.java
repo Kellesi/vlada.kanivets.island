@@ -5,6 +5,7 @@ import ua.javarush.island.creature.Creature;
 import ua.javarush.island.creature.animal.Animal;
 import ua.javarush.island.creature.plant.Plant;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,14 +13,14 @@ import java.util.stream.Collectors;
 
 @Getter
 public class Area {
-    ReentrantLock lock = new ReentrantLock(true);
     private final int pointX;
     private final int pointY;
     private final Island island;
-    private List<Animal> residents;
+    private final ReentrantLock lock = new ReentrantLock(true);
+    private final Map<Class<? extends Animal>, List<Animal>> residents;
     private List<Plant> plants;
 
-    public Area(List<Animal> residents,
+    public Area(Map<Class<? extends Animal>, List<Animal>> residents,
                 List<Plant> plants,
                 int pointX, int pointY, Island island) {
         this.residents = residents;
@@ -29,7 +30,7 @@ public class Area {
         this.island = island;
     }
 
-    public List<Animal> getAllResidents() {
+    public Map<Class<? extends Animal>, List<Animal>> getAllResidents() {
         return residents;
     }
 
@@ -37,8 +38,8 @@ public class Area {
         return plants;
     }
 
-    public List<Animal> getResidents(String animalType) {
-        return residents.stream().map(Animal.class::cast).filter(animal -> animal.getType().equals(animalType)).collect(Collectors.toList());
+    public List<Animal> getResidents(Class<? extends Animal> animalClass) {
+        return residents.get(animalClass);
     }
 
     public List<Plant> getPlants(String plantType) {
@@ -46,22 +47,29 @@ public class Area {
     }
 
     public void addResident(Animal animal) {
-        residents.add(animal);
+        residents.get(animal.getClass()).add(animal);
     }
 
     public void removeResident(Animal animal) {
-        residents.remove(animal);
+        residents.get(animal.getClass()).remove(animal);
     }
 
     public String getName() {
         return String.format("Area %d-%d", pointX, pointY);
     }
 
-    public Map<String, Long> getCurrentPopulation() {
-        return residents.stream().collect(Collectors.groupingBy(Animal::getType, Collectors.counting()));
+    public Map<Class<? extends Animal>, Integer> getCurrentPopulation() {
+        Map<Class<? extends Animal>, Integer> classToPopulation = new HashMap<>();
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : residents.entrySet()) {
+            classToPopulation.put(entry.getKey(), entry.getValue().size());
+        }
+        return classToPopulation;
     }
 
     public void removeAllDeads() {
-        residents = residents.stream().filter(Creature::isAlive).collect(Collectors.toList());
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : residents.entrySet()) {
+            List<Animal> aliveAnimals = entry.getValue().stream().filter(Creature::isAlive).collect(Collectors.toList());
+            residents.get(entry.getKey()).retainAll(aliveAnimals);
+        }
     }
 }

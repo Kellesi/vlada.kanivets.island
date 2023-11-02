@@ -9,7 +9,9 @@ import ua.javarush.island.settings.BasePlantSettings;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class CreatureFactory {
@@ -51,14 +53,17 @@ public class CreatureFactory {
         return producedPlants;
     }
 
-    public static List<Animal> getAnimals(AnimalType[] animalTypes) {
-        List<Animal> producedAnimals = new ArrayList<>();
+    public static Map<Class<? extends Animal>, List<Animal>> getAnimals(AnimalType[] animalTypes) {
+        Map<Class<? extends Animal>, List<Animal>> classToAnimalsList= new HashMap<>();
         for (AnimalType type : animalTypes) {
+            List<Animal> producedAnimals = new ArrayList<>();
             int population = rnd.nextInt(type.getSettings().getClassMaxPopulation() + 1);
             for (int i = 0; i < population; i++) {
                 producedAnimals.add(getAnimal(type.getClss(), type.getSettings()));
             }
+            classToAnimalsList.put(type.getClss(), producedAnimals);
         }
-        return producedAnimals;
+
+        return classToAnimalsList;
     }
 }

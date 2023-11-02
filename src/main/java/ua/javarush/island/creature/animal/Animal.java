@@ -2,6 +2,7 @@ package ua.javarush.island.creature.animal;
 
 import lombok.Getter;
 import lombok.Setter;
+import ua.javarush.island.creature.AnimalType;
 import ua.javarush.island.creature.Creature;
 import ua.javarush.island.creature.ability.CanBreed;
 import ua.javarush.island.creature.ability.CanEat;
@@ -56,7 +57,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         if (!this.isReadyForBreeding) {
             return Optional.empty();
         }
-        List<Animal> sameTypeResidents = area.getResidents(this.getType());
+        List<Animal> sameTypeResidents = area.getResidents(this.getClass());
         if (sameTypeResidents.size() < settings.getClassMaxPopulation()) {
             Optional<Animal> optionalAnimal = sameTypeResidents.stream()
                     .filter(Animal::isReadyForBreeding)
@@ -92,17 +93,19 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         }
         Area newArea = area;
         while (stepSize != 0) {
-            newArea = getNextArea(newArea);
+            try {
+                newArea = getNextArea(newArea);
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+            }
             stepSize -= 1;
         }
-        if (area.equals(newArea) || newArea.getResidents(this.getType()).size() == settings.getClassMaxPopulation()) {
-        //    System.out.println(this.getName()+" " + area.getName()+" -> "+ newArea.getName());
+        if (area.equals(newArea) || newArea.getResidents(this.getClass()).size() == settings.getClassMaxPopulation()) {
             isMoved = true;
             return;
         }
         newArea.getLock().lock();
         try {
-            if (newArea.getResidents(this.getType()).size() != settings.getClassMaxPopulation()) {
+            if (newArea.getResidents(this.getClass()).size() != settings.getClassMaxPopulation()) {
                 newArea.addResident(this);
                 isMoved = true;
             }
@@ -112,7 +115,6 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         area.getLock().lock();
         try {
             if (isMoved) {
-        //        System.out.println(this.getName()+" " + area.getName()+" -> "+ newArea.getName());
                 area.removeResident(this);
             }
         } finally {
@@ -155,7 +157,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
                 .map(Map.Entry::getKey)
                 .toList();
         for (String foodType : foodTypes) {
-            possibleVictims.addAll(area.getResidents(foodType).stream()
+            possibleVictims.addAll(area.getResidents(AnimalType.valueOf(foodType.toUpperCase()).getClss()).stream()
                     .filter(Creature::isAlive)
                     .toList());
         }
@@ -185,11 +187,7 @@ public abstract class Animal extends Creature implements CanMove, CanBreed, CanE
         int newY = currentY + direction.getDeltaY();
         Area newArea;
         Area[][] areas = island.getAreas();
-        try {
-            newArea = areas[newX][newY];
-        } catch (ArrayIndexOutOfBoundsException ex) {
-            newArea = getNextArea(area);
-        }
+        newArea = areas[newX][newY];
         return newArea;
     }
 

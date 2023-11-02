@@ -6,6 +6,7 @@ import ua.javarush.island.map.Island;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.Callable;
@@ -78,13 +79,16 @@ public class DailyTask {
 
     private Queue<Callable<Void>> everyoneMoveByOne(Area area) {
         Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
-        List<Animal> allResidents = area.getAllResidents();
-        if (!allResidents.isEmpty()) {
-            for (Animal resident : allResidents) {
-                tasks.add(() -> {
-                    resident.move(area);
-                    return null;
-                });
+        Map<Class<? extends Animal>, List<Animal>> allResidentsMap = area.getAllResidents();
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : allResidentsMap.entrySet()) {
+            List<Animal> allResidents = entry.getValue();
+            if (!allResidents.isEmpty()) {
+                for (Animal resident : allResidents) {
+                    tasks.add(() -> {
+                        resident.move(area);
+                        return null;
+                    });
+                }
             }
         }
         return tasks;
@@ -92,13 +96,16 @@ public class DailyTask {
 
     private Queue<Callable<Void>> everyoneEatByOne(Area area) {
         Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
-        List<Animal> allResidents = area.getAllResidents();
-        if (!allResidents.isEmpty()) {
-            for (Animal resident : allResidents) {
-                tasks.add(() -> {
-                    resident.eat(area);
-                    return null;
-                });
+        Map<Class<? extends Animal>, List<Animal>> allResidentsMap = area.getAllResidents();
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : allResidentsMap.entrySet()) {
+            List<Animal> allResidents = entry.getValue();
+            if (!allResidents.isEmpty()) {
+                for (Animal resident : allResidents) {
+                    tasks.add(() -> {
+                        resident.eat(area);
+                        return null;
+                    });
+                }
             }
         }
         return tasks;
@@ -106,40 +113,49 @@ public class DailyTask {
 
     private Queue<Callable<Void>> everyoneBreedByOne(Area area) {
         Queue<Callable<Void>> tasks = new ConcurrentLinkedQueue<>();
-        List<Animal> allResidents = area.getAllResidents();
-        if (!allResidents.isEmpty()) {
-            for (Animal resident : allResidents) {
-                tasks.add(() -> {
-                    resident.breed(area);
-                    return null;
-                });
+        Map<Class<? extends Animal>, List<Animal>> allResidentsMap = area.getAllResidents();
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : allResidentsMap.entrySet()) {
+            List<Animal> allResidents = entry.getValue();
+            if (!allResidents.isEmpty()) {
+                for (Animal resident : allResidents) {
+                    tasks.add(() -> {
+                        resident.breed(area);
+                        return null;
+                    });
+                }
             }
         }
         return tasks;
     }
 
     private void everyoneBreed(Area area) {
-        List<Animal> allResidents = area.getAllResidents();
-        if (allResidents.isEmpty()) {
-            return;
-        }
-        ListIterator<Animal> iterator = allResidents.listIterator();
-        while (iterator.hasNext()) {
-            Optional<Animal> breed = iterator.next().breed(area);
-            if (breed.isPresent()) {
-                iterator.add(breed.get());
+        Map<Class<? extends Animal>, List<Animal>> allResidentsMap = area.getAllResidents();
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : allResidentsMap.entrySet()) {
+            List<Animal> allResidents = entry.getValue();
+            if (allResidents.isEmpty()) {
+                return;
+            }
+            ListIterator<Animal> iterator = allResidents.listIterator();
+            while (iterator.hasNext()) {
+                Optional<Animal> breed = iterator.next().breed(area);
+                if (breed.isPresent()) {
+                    iterator.add(breed.get());
+                }
             }
         }
     }
 
     private void everyoneEat(Area area) {
-        List<Animal> allResidents = area.getAllResidents();
-        if (allResidents.isEmpty()) {
-            return;
+        Map<Class<? extends Animal>, List<Animal>> allResidentsMap = area.getAllResidents();
+        for (Map.Entry<Class<? extends Animal>, List<Animal>> entry : allResidentsMap.entrySet()) {
+            List<Animal> allResidents = entry.getValue();
+            if (allResidents.isEmpty()) {
+                return;
+            }
+            for (Animal resident : allResidents) {
+                resident.eat(area);
+            }
+            area.removeAllDeads();
         }
-        for (Animal resident : allResidents) {
-            resident.eat(area);
-        }
-        area.removeAllDeads();
     }
 }
