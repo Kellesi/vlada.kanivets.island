@@ -64,7 +64,7 @@ public class TaskManager {
             try {
                 future.get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         });
     }
