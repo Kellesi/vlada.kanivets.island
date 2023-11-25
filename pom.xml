@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ua.javarush</groupId>
-    <artifactId>encoder</artifactId>
+    <artifactId>island</artifactId>
     <version>1.0</version>
 
     <properties>
@@ -29,4 +29,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
